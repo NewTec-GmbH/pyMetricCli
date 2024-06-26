@@ -1,4 +1,4 @@
-"""This module provides version and author information."""
+"""The main module with the program entry point."""
 
 # BSD 3-Clause License
 #
@@ -20,7 +20,7 @@
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICU5LAR PURPOSE ARE
 # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
 # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
@@ -32,20 +32,18 @@
 ################################################################################
 # Imports
 ################################################################################
-import importlib.metadata as meta
-import os
+
 import sys
-import toml
+import logging
+
+from pyMetricCli.version import __version__, __author__, __email__, __repository__, __license__
+from pyMetricCli.ret import Ret
 
 ################################################################################
 # Variables
 ################################################################################
 
-__version__ = "???"
-__author__ = "???"
-__email__ = "???"
-__repository__ = "???"
-__license__ = "???"
+LOG: logging.Logger = logging.getLogger(__name__)
 
 ################################################################################
 # Classes
@@ -56,63 +54,21 @@ __license__ = "???"
 ################################################################################
 
 
-def resource_path(relative_path):
-    """ Get the absolute path to the resource, works for dev and for PyInstaller """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        # pylint: disable=protected-access
-        # pylint: disable=no-member
-        base_path = sys._MEIPASS
-    except Exception:  # pylint: disable=broad-except
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-
-
-def init_from_metadata():
-    """Initialize dunders from importlib.metadata
-    Requires that the package was installed.
+def main() -> Ret:
+    """ The program entry point function.
 
     Returns:
-        list: Tool related information
+        int: System exit status.
     """
-
-    my_metadata = meta.metadata('template_python')
-
-    return \
-        my_metadata['Version'], \
-        my_metadata['Author'], \
-        my_metadata['Author-email'], \
-        my_metadata['Project-URL'].replace("repository, ", ""), \
-        my_metadata['License']
-
-
-def init_from_toml():
-    """Initialize dunders from pypackage.toml file
-
-    Tried if package wasn't installed.
-
-    Returns:
-        list: Tool related information
-    """
-
-    toml_file = resource_path("pyproject.toml")
-    data = toml.load(toml_file)
-
-    return \
-        data["project"]["version"], \
-        data["project"]["authors"][0]["name"], \
-        data["project"]["authors"][0]["email"], \
-        data["project"]["urls"]["repository"], \
-        data["project"]["license"]["text"]
+    ret_status = Ret.OK
+    logging.basicConfig(level=logging.INFO)
+    LOG.info("Hello World!")
+    return ret_status
 
 ################################################################################
 # Main
 ################################################################################
 
 
-try:
-    __version__, __author__, __email__, __repository__, __license__ = init_from_metadata()
-
-except meta.PackageNotFoundError:
-    __version__, __author__, __email__, __repository__, __license__ = init_from_toml()
+if __name__ == "__main__":
+    sys.exit(main())
