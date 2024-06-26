@@ -125,8 +125,9 @@ def main() -> Ret:
                 LOG.info("* %s = %s", arg, vars(args)[arg])
 
         try:
-            # Do something with the arguments.
-            LOG.info("Config file: %s", args.config_file)
+            if args.config_file.endswith(".json") is False:
+                raise ValueError(
+                    "Invalid config_file format. Please provide a JSON file.")
         except Exception as e:  # pylint: disable=broad-except
             LOG.error("An error occurred: %s", e)
             ret_status = Ret.ERROR
