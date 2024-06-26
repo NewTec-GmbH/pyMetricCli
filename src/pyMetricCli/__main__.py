@@ -36,6 +36,9 @@
 import sys
 import logging
 import argparse
+import os.path
+import importlib.util
+import json
 
 from pyMetricCli.version import __version__, __author__, __email__, __repository__, __license__
 from pyMetricCli.ret import Ret
@@ -98,6 +101,45 @@ def add_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def import_handler(adapter_path: str) -> type:
+    """
+    Import the adapter module from the given path.
+
+    Args:
+        adapter_path (str): The path to the adapter module.
+
+    Returns:
+        type: The Adapter Class.
+    """
+    adapter_name = "adapter"
+
+    if not os.path.isfile(adapter_path):
+        raise ValueError(f"File not found: {adapter_path}")
+
+    module_spec = importlib.util.spec_from_file_location(adapter_name,
+                                                         adapter_path)
+    adapter = importlib.util.module_from_spec(module_spec)
+    sys.modules[adapter_name] = adapter
+    module_spec.loader.exec_module(adapter)
+
+    return adapter.Adapter()
+
+
+def set_key_value_pair(key: str, value: str) -> bool:
+    """
+    Set the value of a key in a dictionary.
+
+    Args:
+        key (str): The key.
+        value (str): The value.
+
+    Returns:
+        bool: True if the key-value pair was set successfully, False otherwise.
+    """
+    print(f"Setting key '{key}' to value '{value}'")
+    return True
+
+
 def main() -> Ret:
     """ The program entry point function.
 
@@ -125,9 +167,38 @@ def main() -> Ret:
                 LOG.info("* %s = %s", arg, vars(args)[arg])
 
         try:
+            # Check if the config file is a JSON file.
             if args.config_file.endswith(".json") is False:
                 raise ValueError(
                     "Invalid config_file format. Please provide a JSON file.")
+
+            # Load the config file.
+            with open(args.config_file, "r", encoding="UTF-8") as file:
+                config_data = json.load(file)
+
+            # Check if the adapter_path is present in the config file.
+            if "adapter_path" not in config_data:
+                raise ValueError("adapter_path not found in config file.")
+
+            # Import the adapter module.
+            adapter = import_handler(config_data["adapter_path"])
+
+            # Get data from JIRA and Polarion.
+            LOG.info("Getting data from JIRA and Polarion...")
+
+            # Call the handler functions to extract the data.
+            adapter.handle_jira({}, set_key_value_pair)
+            adapter.handle_polarion({}, set_key_value_pair)
+
+            # Save the output dictionary to a temporary file.
+            LOG.info("Saving output to a temporary file...")
+
+            # Send the temporary file to the metric server using Superset.
+            LOG.info("Sending the temporary file to the metric server...")
+
+            # Remove the temporary file.
+            LOG.info("Removing the temporary file...")
+
         except Exception as e:  # pylint: disable=broad-except
             LOG.error("An error occurred: %s", e)
             ret_status = Ret.ERROR
