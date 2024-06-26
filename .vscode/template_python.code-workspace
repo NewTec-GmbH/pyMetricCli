@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"editor.formatOnSave": true
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.autopep8",
+			"ms-python.vscode-pylance",
+			"ms-python.pylint",
+			"ms-python.python",
+			"ms-python.debugpy",
+			"shd101wyy.markdown-preview-enhanced",
+			"davidanson.vscode-markdownlint",
+			"jebbs.plantuml"
+		]
+	}
+}
