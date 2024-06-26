@@ -35,6 +35,7 @@
 
 import sys
 import logging
+import argparse
 
 from pyMetricCli.version import __version__, __author__, __email__, __repository__, __license__
 from pyMetricCli.ret import Ret
@@ -45,6 +46,12 @@ from pyMetricCli.ret import Ret
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
+PROG_NAME = "pyMetricCli"
+PROG_DESC = "Collection of scripts and API implementations for generating and playing with metrics."
+PROG_COPYRIGHT = f"Copyright (c) 2024 NewTec GmbH - {__license__}"
+PROG_GITHUB = f"Find the project on GitHub: {__repository__}"
+PROG_EPILOG = f"{PROG_COPYRIGHT} - {PROG_GITHUB}"
+
 ################################################################################
 # Classes
 ################################################################################
@@ -52,6 +59,42 @@ LOG: logging.Logger = logging.getLogger(__name__)
 ################################################################################
 # Functions
 ################################################################################
+
+def add_parser() -> argparse.ArgumentParser:
+    """ Add parser for command line arguments and
+        set the execute function of each 
+        cmd module as callback for the subparser command.
+        Return the parser after all the modules have been registered
+        and added their subparsers.
+
+
+    Returns:
+        argparse.ArgumentParser:  The parser object for commandline arguments.
+    """
+    parser = argparse.ArgumentParser(prog=PROG_NAME,
+                                     description=PROG_DESC,
+                                     epilog=PROG_EPILOG)
+
+    required_arguments = parser.add_argument_group('required arguments')
+
+    required_arguments.add_argument('-c',
+                                    '--config_file',
+                                    type=str,
+                                    metavar='<config_file>',
+                                    required=True,
+                                    help="Configuration file to be used.")
+
+    parser.add_argument("--version",
+                        action="version",
+                        version="%(prog)s " + __version__)
+
+    parser.add_argument("-v",
+                        "--verbose",
+                        action="store_true",
+                        help="Print full command details before executing the command.\
+                            Enables logs of type INFO and WARNING.")
+
+    return parser
 
 
 def main() -> Ret:
@@ -61,8 +104,32 @@ def main() -> Ret:
         int: System exit status.
     """
     ret_status = Ret.OK
-    logging.basicConfig(level=logging.INFO)
-    LOG.info("Hello World!")
+
+    # Create the main parser and add the subparsers.
+    parser = add_parser()
+
+    # Parse the command line arguments.
+    args = parser.parse_args()
+
+    # Check if the command line arguments are valid.
+    if args is None:
+        ret_status = Ret.ERROR_ARGPARSE
+        parser.print_help()
+    else:
+        # If the verbose flag is set, change the default logging level.
+        if args.verbose:
+            logging.basicConfig(level=logging.INFO)
+            LOG.info("Program arguments: ")
+            for arg in vars(args):
+                LOG.info("* %s = %s", arg, vars(args)[arg])
+        
+        try:
+            # Do something with the arguments.
+            LOG.info("Config file: %s", args.config_file)
+        except Exception as e: # pylint: disable=broad-except
+            LOG.error("An error occurred: %s", e)
+            ret_status = Ret.ERROR
+
     return ret_status
 
 ################################################################################
