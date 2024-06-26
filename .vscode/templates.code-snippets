@@ -1,6 +1,6 @@
 {
 	"Python Template": {
-		"prefix": "pyMetricCli",
+		"prefix": "template_python",
 		"scope": "python",
 		"body": [
 			"\"\"\"${1:DocString}\"\"\"",
