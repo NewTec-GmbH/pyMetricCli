@@ -60,6 +60,7 @@ PROG_EPILOG = f"{PROG_COPYRIGHT} - {PROG_GITHUB}"
 # Functions
 ################################################################################
 
+
 def add_parser() -> argparse.ArgumentParser:
     """ Add parser for command line arguments and
         set the execute function of each 
@@ -122,11 +123,11 @@ def main() -> Ret:
             LOG.info("Program arguments: ")
             for arg in vars(args):
                 LOG.info("* %s = %s", arg, vars(args)[arg])
-        
+
         try:
             # Do something with the arguments.
             LOG.info("Config file: %s", args.config_file)
-        except Exception as e: # pylint: disable=broad-except
+        except Exception as e:  # pylint: disable=broad-except
             LOG.error("An error occurred: %s", e)
             ret_status = Ret.ERROR
 

@@ -49,6 +49,7 @@ class Ret(IntEnum):
     """
     OK = 0
     ERROR = 1
+    ERROR_ARGPARSE = 2  # Must be 2 to match the argparse error code.
 
 ################################################################################
 # Functions
