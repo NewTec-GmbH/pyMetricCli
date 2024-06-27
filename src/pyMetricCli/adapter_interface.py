@@ -1,4 +1,4 @@
-"""This module contains general constants, used in all other modules."""
+"""Adapter interface module."""
 
 # BSD 3-Clause License
 #
@@ -33,8 +33,6 @@
 # Imports
 ################################################################################
 
-from enum import IntEnum
-
 ################################################################################
 # Variables
 ################################################################################
@@ -44,16 +42,39 @@ from enum import IntEnum
 ################################################################################
 
 
-class Ret(IntEnum):
-    """This type shall be used for return status information.
+class AdapterInterface():
     """
-    OK = 0
-    ERROR = 1
-    ERROR_ARGPARSE = 2  # Must be 2 to match the argparse error code.
-    ERROR_INVALID_ARGUMENT = 3
-    ERROR_ADAPTER_HANDLER_JIRA = 4
-    ERROR_ADAPTER_HANDLER_POLARION = 5
-    ERROR_SUPERSET_UPLOAD = 6
+    Adapter interface class for handling different search results.
+    """
+
+    output: dict
+    jira_config: dict
+    polarion_config: dict
+    superset_config: dict
+
+    def handle_jira(self, _search_results: dict) -> bool:
+        """
+        Handles the JIRA search results.
+
+        Args:
+            search_results: The search results from the JIRA API.
+
+        Returns:
+            bool: True if the search results were handled successfully, False otherwise.
+        """
+        return False
+
+    def handle_polarion(self, _search_results: dict) -> bool:
+        """
+        Handles the Polarion search results.
+
+        Args:
+            search_results: The search results from the Polarion API.
+
+        Returns:
+            bool: True if the search results were handled successfully, False otherwise.
+        """
+        return False
 
 ################################################################################
 # Functions

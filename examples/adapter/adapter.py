@@ -34,8 +34,8 @@
 # Imports
 ################################################################################
 
-from typing import Callable
 import logging
+from pyMetricCli.adapter_interface import AdapterInterface
 
 ################################################################################
 # Variables
@@ -48,55 +48,75 @@ LOG = logging.getLogger(__name__)
 ################################################################################
 
 
-class Adapter:
+class Adapter(AdapterInterface):
     """
     Adapter class for handling different search results.
     """
 
-    def handle_jira(self,
-                    search_results: dict,
-                    set_key_value_pair: Callable[[str, str], bool]) -> None:
+    # Define the output dictionary
+    # Must include all possible values.
+    # Please make sure that the keys of the output dictionary are unique, regardless of their case.
+    # In this example, Polarion Status has 2 possible values: "open" and "closed".
+    output: dict = {
+        "status_open": 0,
+        "status_closed": 0
+    }
+
+    jira_config = {
+        "server": "https://jira.example.com",
+        "token": "",
+        "filter": "",
+        "max": "0",  # 0 gets all issues that match the filter.
+        "fields": [],
+        "full": False
+    }
+
+    polarion_config = {
+        "username": "",
+        "password": "",
+        "server": "http://polarion.example.com/polarion",
+        "project": "",
+        "query": "HAS_VALUE:status",  # Query to get all work items with a status
+        "fields": ["status"]  # Fields to include in the query
+    }
+
+    superset_config = {
+        "server": "http://superset.example.com",
+        "user": "",
+        "password": "",
+        "database": 0,  # Primary key of the database
+        "table": "",
+        "basic_auth": False,
+        "no_ssl": False
+    }
+
+    def handle_jira(self, search_results: dict) -> bool:
         """
         Handles the JIRA search results.
 
         Args:
             search_results: The search results from the JIRA API.
-            set_key_value_pair: The callback function to set 
-                a key-value pair in the output dictionary.
 
-        set_key_value_pair:
-            Args:
-                key: The key to set in the output dictionary.
-                value: The value to set in the output dictionary.
-            Returns:
-                True if the key-value pair was set successfully, False otherwise.
+        Returns:
+            bool: True if the search results were handled successfully, False otherwise.
         """
         LOG.info("Handling JIRA search results...")
-        LOG.info(type(search_results))
-        LOG.info(type(set_key_value_pair))
+        LOG.info(search_results)
+        return True
 
-    def handle_polarion(self,
-                        search_results: dict,
-                        set_key_value_pair: Callable[[str, str], bool]) -> None:
+    def handle_polarion(self, search_results: dict) -> bool:
         """
         Handles the Polarion search results.
 
         Args:
             search_results: The search results from the Polarion API.
-            set_key_value_pair: The callback function to set 
-                a key-value pair in the output dictionary.
 
-        set_key_value_pair:
-            Args:
-                key: The key to set in the output dictionary.
-                value: The value to set in the output dictionary.
-            Returns:
-                True if the key-value pair was set successfully, False otherwise.
-
+        Returns:
+            bool: True if the search results were handled successfully, False otherwise.
         """
         LOG.info("Handling Polarion search results...")
-        LOG.info(type(search_results))
-        LOG.info(type(set_key_value_pair))
+        LOG.info(search_results)
+        return True
 
 ################################################################################
 # Functions

@@ -39,9 +39,14 @@ import argparse
 import os.path
 import importlib.util
 import json
+import datetime
 
 from pyMetricCli.version import __version__, __author__, __email__, __repository__, __license__
 from pyMetricCli.ret import Ret
+from pyMetricCli.jira import Jira
+from pyMetricCli.polarion import Polarion
+from pyMetricCli.superset import Superset
+from pyMetricCli.adapter_interface import AdapterInterface
 
 ################################################################################
 # Variables
@@ -54,6 +59,9 @@ PROG_DESC = "Collection of scripts and API implementations for generating and pl
 PROG_COPYRIGHT = f"Copyright (c) 2024 NewTec GmbH - {__license__}"
 PROG_GITHUB = f"Find the project on GitHub: {__repository__}"
 PROG_EPILOG = f"{PROG_COPYRIGHT} - {PROG_GITHUB}"
+
+_TEMP_DIR_NAME = "temp"
+_TEMP_FILE_NAME = "superset_input.json"
 
 ################################################################################
 # Classes
@@ -81,12 +89,12 @@ def add_parser() -> argparse.ArgumentParser:
 
     required_arguments = parser.add_argument_group('required arguments')
 
-    required_arguments.add_argument('-c',
-                                    '--config_file',
+    required_arguments.add_argument('-a',
+                                    '--adapter_file',
                                     type=str,
-                                    metavar='<config_file>',
+                                    metavar='<adapter_file>',
                                     required=True,
-                                    help="Configuration file to be used.")
+                                    help="Adapter file to be used.")
 
     parser.add_argument("--version",
                         action="version",
@@ -101,7 +109,7 @@ def add_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def import_handler(adapter_path: str) -> type:
+def _import_adapter(adapter_path: str) -> AdapterInterface:
     """
     Import the adapter module from the given path.
 
@@ -109,35 +117,59 @@ def import_handler(adapter_path: str) -> type:
         adapter_path (str): The path to the adapter module.
 
     Returns:
-        type: The Adapter Class.
+        AdapterInterface: Instance of an adapter class inherited from AdapterInterface.
     """
     adapter_name = "adapter"
+    adapter_instance = None
 
     if not os.path.isfile(adapter_path):
-        raise ValueError(f"File not found: {adapter_path}")
+        LOG.error("The adapter file does not exist.")
+    else:
+        module_spec = importlib.util.spec_from_file_location(adapter_name,
+                                                             adapter_path)
+        adapter = importlib.util.module_from_spec(module_spec)
+        sys.modules[adapter_name] = adapter
+        module_spec.loader.exec_module(adapter)
 
-    module_spec = importlib.util.spec_from_file_location(adapter_name,
-                                                         adapter_path)
-    adapter = importlib.util.module_from_spec(module_spec)
-    sys.modules[adapter_name] = adapter
-    module_spec.loader.exec_module(adapter)
+        adapter_instance = adapter.Adapter()
 
-    return adapter.Adapter()
+    # Check all required attributes and methods of the adapter class.
+    # Must be done as Python does not enforce interfaces.
+    if not isinstance(adapter_instance, AdapterInterface):
+        LOG.error("The adapter class must inherit from AdapterInterface.")
+        adapter_instance = None
+    elif not hasattr(adapter_instance, "output"):
+        LOG.error("The adapter class must have an 'output' attribute.")
+        adapter_instance = None
+    elif not hasattr(adapter_instance, "jira_config"):
+        LOG.error("The adapter class must have a 'jira_config' attribute.")
+        adapter_instance = None
+    elif not hasattr(adapter_instance, "polarion_config"):
+        LOG.error("The adapter class must have a 'polarion_config' attribute.")
+        adapter_instance = None
+    elif not hasattr(adapter_instance, "superset_config"):
+        LOG.error("The adapter class must have a 'superset_config' attribute.")
+        adapter_instance = None
+    elif not hasattr(adapter_instance, "handle_jira"):
+        LOG.error("The adapter class must have a 'handle_jira' method.")
+        adapter_instance = None
+    elif not hasattr(adapter_instance, "handle_polarion"):
+        LOG.error("The adapter class must have a 'handle_polarion' method.")
+        adapter_instance = None
+    else:
+        LOG.info("Adapter class successfully imported.")
 
+        # Check if the values of the output dictionary in the adapter class are unique.
+        output_list = list(adapter_instance.output.keys())
+        output_list_lowercase = [status.lower() for status in output_list]
 
-def set_key_value_pair(key: str, value: str) -> bool:
-    """
-    Set the value of a key in a dictionary.
+        number_unique_values = len(set(output_list_lowercase))
+        if number_unique_values != len(output_list):
+            LOG.error(
+                "The keys in the output dictionary in the adapter class must be unique.")
+            adapter_instance = None
 
-    Args:
-        key (str): The key.
-        value (str): The value.
-
-    Returns:
-        bool: True if the key-value pair was set successfully, False otherwise.
-    """
-    print(f"Setting key '{key}' to value '{value}'")
-    return True
+    return adapter_instance
 
 
 def main() -> Ret:
@@ -159,6 +191,8 @@ def main() -> Ret:
         ret_status = Ret.ERROR_ARGPARSE
         parser.print_help()
     else:
+        adapter: AdapterInterface = None
+
         # If the verbose flag is set, change the default logging level.
         if args.verbose:
             logging.basicConfig(level=logging.INFO)
@@ -166,42 +200,83 @@ def main() -> Ret:
             for arg in vars(args):
                 LOG.info("* %s = %s", arg, vars(args)[arg])
 
-        try:
-            # Check if the config file is a JSON file.
-            if args.config_file.endswith(".json") is False:
-                raise ValueError(
-                    "Invalid config_file format. Please provide a JSON file.")
+        # Check if temp directory exists, if not create it.
+        if not os.path.exists(_TEMP_DIR_NAME):
+            os.makedirs(_TEMP_DIR_NAME)
 
-            # Load the config file.
-            with open(args.config_file, "r", encoding="UTF-8") as file:
-                config_data = json.load(file)
+        # Check if the adapter is a Python file.
+        if args.adapter_file.endswith(".py") is False:
+            ret_status = Ret.ERROR_INVALID_ARGUMENT
+            LOG.error("The adapter must be a Python file.")
 
-            # Check if the adapter_path is present in the config file.
-            if "adapter_path" not in config_data:
-                raise ValueError("adapter_path not found in config file.")
-
+        if ret_status == Ret.OK:
             # Import the adapter module.
-            adapter = import_handler(config_data["adapter_path"])
+            adapter = _import_adapter(args.adapter_file)
+            if adapter is None:
+                LOG.error("The adapter module could not be imported.")
+                ret_status = Ret.ERROR
 
-            # Get data from JIRA and Polarion.
-            LOG.info("Getting data from JIRA and Polarion...")
+        if ret_status == Ret.OK:
+            if adapter.jira_config.get("filter", "") != "":
+                # Overwrite the output directory with the temp directory.
+                adapter.jira_config["file"] = os.path.join(
+                    _TEMP_DIR_NAME, "jira_search_results.json")
 
-            # Call the handler functions to extract the data.
-            adapter.handle_jira({}, set_key_value_pair)
-            adapter.handle_polarion({}, set_key_value_pair)
+                LOG.info("Searching in Jira: %s",
+                         adapter.jira_config["filter"])
 
+                jira_instance = Jira(adapter.jira_config)
+                jira_results = jira_instance.search()
+
+                if adapter.handle_jira(jira_results) is False:
+                    ret_status = Ret.ERROR_ADAPTER_HANDLER_JIRA
+
+        if ret_status == Ret.OK:
+            if adapter.polarion_config.get("query", "") != "":
+                # Overwrite the output directory with the temp directory.
+                adapter.polarion_config["output"] = _TEMP_DIR_NAME
+
+                LOG.info("Searching in Polarion: %s",
+                         adapter.polarion_config["query"])
+
+                polarion_instance = Polarion(adapter.polarion_config)
+                polarion_results = polarion_instance.search()
+                if adapter.handle_polarion(polarion_results) is False:
+                    ret_status = Ret.ERROR_ADAPTER_HANDLER_POLARION
+
+        if ret_status == Ret.OK:
             # Save the output dictionary to a temporary file.
             LOG.info("Saving output to a temporary file...")
 
+            final_output = adapter.output
+            # Ensure the output always contains a date.
+            final_output["date"] = datetime.datetime.now().isoformat()
+
+            try:
+                temp_file_path = os.path.join(_TEMP_DIR_NAME, _TEMP_FILE_NAME)
+                # Write to the file.
+                with open(temp_file_path, "w", encoding="UTF-8") as file:
+                    json.dump(final_output, file, indent=2)
+            except Exception as e:  # pylint: disable=broad-except
+                LOG.error("An error occurred writing the temporary file: %s", e)
+                ret_status = Ret.ERROR
+
+        if Ret.OK == ret_status:
             # Send the temporary file to the metric server using Superset.
             LOG.info("Sending the temporary file to the metric server...")
 
-            # Remove the temporary file.
-            LOG.info("Removing the temporary file...")
+            LOG.info("Uploading file %s", temp_file_path)
 
-        except Exception as e:  # pylint: disable=broad-except
-            LOG.error("An error occurred: %s", e)
-            ret_status = Ret.ERROR
+            superset_instance = Superset(adapter.superset_config)
+            ret = superset_instance.upload(temp_file_path)
+
+            if 0 != ret:
+                ret_status = Ret.ERROR_SUPERSET_UPLOAD
+                LOG.error("Error while uploading to Superset!")
+
+        # Clean up the temporary directory.
+        if not os.path.exists(_TEMP_DIR_NAME):
+            os.rmdir(_TEMP_DIR_NAME)
 
     return ret_status
 
