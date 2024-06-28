@@ -62,6 +62,7 @@ class Adapter(AdapterInterface):
         "status_closed": 0
     }
 
+    # Set "filter": "", if you don't want to search in Jira.
     jira_config = {
         "server": "https://jira.example.com",
         "token": "",
@@ -71,6 +72,7 @@ class Adapter(AdapterInterface):
         "full": False
     }
 
+    # Set "query": "", if you don't want to search in Polarion.
     polarion_config = {
         "username": "",
         "password": "",
