@@ -1,6 +1,0 @@
-{
-    "adapter_path": "examples/adapter/adapter.py",
-    "jira":{},
-    "polarion":{},
-    "superset":{}
-}
