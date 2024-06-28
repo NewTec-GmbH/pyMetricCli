@@ -298,47 +298,47 @@ def main() -> Ret:
                 LOG.info("* %s = %s", arg, vars(args)[arg])
 
         # Check if temp directory exists, if not create it.
-        if not os.path.exists(_TEMP_DIR_NAME):
-            os.makedirs(_TEMP_DIR_NAME)
+        os.makedirs(_TEMP_DIR_NAME, exist_ok=True)
 
         # Check if the adapter is a Python file.
         if args.adapter_file.endswith(".py") is False:
             ret_status = Ret.ERROR_INVALID_ARGUMENT
             LOG.error("The adapter must be a Python file.")
-
-        if ret_status == Ret.OK:
-            # Import the adapter module.
+        else:
             adapter = _import_adapter(args.adapter_file)
 
             if adapter is None:
                 LOG.error("The adapter module could not be imported.")
                 ret_status = Ret.ERROR
+            else:
+                if Ret.OK != _process_jira(adapter=adapter):
+                    LOG.error("Error while processing Jira.")
+                    ret_status = Ret.ERROR_ADAPTER_HANDLER_JIRA
 
-        if ret_status == Ret.OK:
-            ret_status = _process_jira(adapter=adapter)
+                elif Ret.OK != _process_polarion(adapter=adapter):
+                    LOG.error("Error while processing Polarion.")
+                    ret_status = Ret.ERROR_ADAPTER_HANDLER_POLARION
+                else:
+                    # Save the output dictionary to a temporary file.
+                    LOG.info("Saving output to a temporary file...")
 
-        if ret_status == Ret.OK:
-            ret_status = _process_polarion(adapter=adapter)
+                    # Get the output from the adapter.
+                    processed_output = adapter.output
 
-        if ret_status == Ret.OK:
-            # Save the output dictionary to a temporary file.
-            LOG.info("Saving output to a temporary file...")
+                    # Ensure the output always contains a date.
+                    processed_output["date"] = datetime.datetime.now(
+                    ).isoformat()
 
-            # Get the output from the adapter.
-            processed_output = adapter.output
+                    # Save the output to a temporary file.
+                    if Ret.OK != _save_temp_file(output=processed_output):
+                        ret_status = Ret.ERROR
+                        LOG.error("Error while saving the temporary file.")
+                    elif Ret.OK != _process_superset(adapter=adapter):
+                        ret_status = Ret.ERROR_SUPERSET_UPLOAD
+                        LOG.error("Error while processing Superset.")
 
-            # Ensure the output always contains a date.
-            processed_output["date"] = datetime.datetime.now().isoformat()
-
-            # Save the output to a temporary file.
-            ret_status = _save_temp_file(output=processed_output)
-
-        if Ret.OK == ret_status:
-            ret_status = _process_superset(adapter=adapter)
-
-        # Clean up the temporary directory.
-        if os.path.exists(_TEMP_DIR_NAME):
-            shutil.rmtree(_TEMP_DIR_NAME, ignore_errors=True)
+        # Clean up the temporary directory if exists.
+        shutil.rmtree(_TEMP_DIR_NAME, ignore_errors=True)
 
     return ret_status
 
