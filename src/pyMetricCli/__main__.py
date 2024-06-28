@@ -132,8 +132,11 @@ def _import_adapter(adapter_path: str) -> AdapterInterface:
         adapter = importlib.util.module_from_spec(module_spec)
         sys.modules[adapter_name] = adapter
         module_spec.loader.exec_module(adapter)
-
-        adapter_instance = adapter.Adapter()
+        if not hasattr(adapter, "Adapter"):
+            LOG.error("The adapter module must have an 'Adapter' class.")
+            adapter_instance = None
+        else:
+            adapter_instance = adapter.Adapter()
 
     # Check all required attributes and methods of the adapter class.
     # Must be done as Python does not enforce interfaces.
