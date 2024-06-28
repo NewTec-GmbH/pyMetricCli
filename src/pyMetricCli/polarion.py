@@ -58,7 +58,7 @@ class Polarion:  # pylint: disable=too-few-public-methods
 
     def __init__(self, polarion_config: dict) -> None:
         self.config = polarion_config
-        print(self.config)
+        self.is_installed = self.__check_if_is_installed()
 
     def __run_pypolarioncli(self, arguments) -> subprocess.CompletedProcess:
         """
@@ -86,6 +86,7 @@ class Polarion:  # pylint: disable=too-few-public-methods
         Returns:
             bool: True if pyPolarionCli is installed, False otherwise.
         """
+        # pylint: disable=duplicate-code
         is_installed = True
         try:
             ret = self.__run_pypolarioncli(["--help"])
@@ -103,7 +104,6 @@ class Polarion:  # pylint: disable=too-few-public-methods
             dict: Search results.
         """
         output = {}
-        self.__check_if_is_installed()
 
         output_file_name = os.path.join(self.config['output'],
                                         f"{self.config['project']}_search_results.json")

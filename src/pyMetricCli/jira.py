@@ -52,11 +52,12 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 class Jira:  # pylint: disable=too-few-public-methods
     """
-    Wrapper for the pyPolarionCli Tool.
+    Wrapper for the pyJiraCli Tool.
     """
 
     def __init__(self, jira_config: dict) -> None:
         self.config = jira_config
+        self.is_installed = self.__check_if_is_installed()
 
     def __run_pyjiracli(self, arguments) -> subprocess.CompletedProcess:
         """
@@ -69,6 +70,7 @@ class Jira:  # pylint: disable=too-few-public-methods
             subprocess.CompletedProcess[bytes]: The result of the command. 
             Includes return code, stdout and stderr.
         """
+        # pylint: disable=duplicate-code
         args = ["pyJiraCli"]  # The executable to run.
         args.extend(arguments)  # Add the arguments to the command.
         return subprocess.run(args,
@@ -100,7 +102,6 @@ class Jira:  # pylint: disable=too-few-public-methods
             dict: Search results.
         """
         output = {}
-        self.__check_if_is_installed()
         command_list: list = ["--server", self.config["server"],
                               "--token", self.config["token"],
                               "search",

@@ -56,6 +56,7 @@ class Superset:  # pylint: disable=too-few-public-methods
 
     def __init__(self, superset_config: dict) -> None:
         self.config = superset_config
+        self.is_installed = self.__check_if_is_installed()
 
     def __run_pysupersetcli(self, arguments) -> subprocess.CompletedProcess:
         """
@@ -68,6 +69,7 @@ class Superset:  # pylint: disable=too-few-public-methods
             subprocess.CompletedProcess[bytes]: The result of the command. 
             Includes return code, stdout and stderr.
         """
+        # pylint: disable=duplicate-code
         args = ["pySupersetCli"]  # The executable to run.
         args.extend(arguments)  # Add the arguments to the command.
         return subprocess.run(args,
@@ -101,7 +103,6 @@ class Superset:  # pylint: disable=too-few-public-methods
         Returns:
             int: Return Code of the command.
         """
-        self.__check_if_is_installed()
         command_list: list = ["--verbose",
                               "--server", self.config["server"],
                               "--user", self.config["user"],

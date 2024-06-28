@@ -54,6 +54,9 @@ class Ret(IntEnum):
     ERROR_ADAPTER_HANDLER_JIRA = 4
     ERROR_ADAPTER_HANDLER_POLARION = 5
     ERROR_SUPERSET_UPLOAD = 6
+    ERROR_NOT_INSTALLED_JIRA = 7
+    ERROR_NOT_INSTALLED_POLARION = 8
+    ERROR_NOT_INSTALLED_SUPERSET = 9
 
 ################################################################################
 # Functions

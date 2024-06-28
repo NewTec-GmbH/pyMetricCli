@@ -192,10 +192,13 @@ def _process_jira(adapter: AdapterInterface) -> Ret:
                  adapter.jira_config["filter"])
 
         jira_instance = Jira(adapter.jira_config)
-        jira_results = jira_instance.search()
-
-        if adapter.handle_jira(jira_results) is False:
-            ret_status = Ret.ERROR_ADAPTER_HANDLER_JIRA
+        if jira_instance.is_installed is False:
+            LOG.error("pyJiraCli is not installed!")
+            ret_status = Ret.ERROR_NOT_INSTALLED_JIRA
+        else:
+            jira_results = jira_instance.search()
+            if adapter.handle_jira(jira_results) is False:
+                ret_status = Ret.ERROR_ADAPTER_HANDLER_JIRA
 
     return ret_status
 
@@ -217,9 +220,13 @@ def _process_polarion(adapter: AdapterInterface) -> Ret:
                  adapter.polarion_config["query"])
 
         polarion_instance = Polarion(adapter.polarion_config)
-        polarion_results = polarion_instance.search()
-        if adapter.handle_polarion(polarion_results) is False:
-            ret_status = Ret.ERROR_ADAPTER_HANDLER_POLARION
+        if polarion_instance.is_installed is False:
+            LOG.error("pyPolarionCli is not installed!")
+            ret_status = Ret.ERROR_NOT_INSTALLED_POLARION
+        else:
+            polarion_results = polarion_instance.search()
+            if adapter.handle_polarion(polarion_results) is False:
+                ret_status = Ret.ERROR_ADAPTER_HANDLER_POLARION
 
     return ret_status
 
@@ -258,13 +265,17 @@ def _process_superset(adapter: AdapterInterface) -> Ret:
 
     # Send the temporary file to the metric server using Superset.
     superset_instance = Superset(adapter.superset_config)
-    ret = superset_instance.upload(_TEMP_FILE_PATH)
-
-    if 0 != ret:
-        ret_status = Ret.ERROR_SUPERSET_UPLOAD
-        LOG.error("Error while uploading to Superset!")
+    if superset_instance.is_installed is False:
+        LOG.error("pySupersetCli is not installed!")
+        ret_status = Ret.ERROR_NOT_INSTALLED_SUPERSET
     else:
-        LOG.info("Successfully uploaded to Superset!")
+        ret = superset_instance.upload(_TEMP_FILE_PATH)
+
+        if 0 != ret:
+            ret_status = Ret.ERROR_SUPERSET_UPLOAD
+            LOG.error("Error while uploading to Superset!")
+        else:
+            LOG.info("Successfully uploaded to Superset!")
 
     return ret_status
 
