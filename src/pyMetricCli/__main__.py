@@ -40,6 +40,7 @@ import os.path
 import importlib.util
 import json
 import datetime
+import shutil
 
 from pyMetricCli.version import __version__, __author__, __email__, __repository__, __license__
 from pyMetricCli.ret import Ret
@@ -62,6 +63,7 @@ PROG_EPILOG = f"{PROG_COPYRIGHT} - {PROG_GITHUB}"
 
 _TEMP_DIR_NAME = "temp"
 _TEMP_FILE_NAME = "superset_input.json"
+_TEMP_FILE_PATH = os.path.join(_TEMP_DIR_NAME, _TEMP_FILE_NAME)
 
 ################################################################################
 # Classes
@@ -172,6 +174,101 @@ def _import_adapter(adapter_path: str) -> AdapterInterface:
     return adapter_instance
 
 
+def _process_jira(adapter: AdapterInterface) -> Ret:
+    """
+    Process the Jira query and search results.
+
+    Returns:
+        Ret: The return status.
+    """
+    ret_status = Ret.OK
+
+    if adapter.jira_config.get("filter", "") != "":
+        # Overwrite the output directory with the temp directory.
+        adapter.jira_config["file"] = os.path.join(
+            _TEMP_DIR_NAME, "jira_search_results.json")
+
+        LOG.info("Searching in Jira: %s",
+                 adapter.jira_config["filter"])
+
+        jira_instance = Jira(adapter.jira_config)
+        jira_results = jira_instance.search()
+
+        if adapter.handle_jira(jira_results) is False:
+            ret_status = Ret.ERROR_ADAPTER_HANDLER_JIRA
+
+    return ret_status
+
+
+def _process_polarion(adapter: AdapterInterface) -> Ret:
+    """
+    Process the Polarion query and search results.
+
+    Returns:
+        Ret: The return status.
+    """
+    ret_status = Ret.OK
+
+    if adapter.polarion_config.get("query", "") != "":
+        # Overwrite the output directory with the temp directory.
+        adapter.polarion_config["output"] = _TEMP_DIR_NAME
+
+        LOG.info("Searching in Polarion: %s",
+                 adapter.polarion_config["query"])
+
+        polarion_instance = Polarion(adapter.polarion_config)
+        polarion_results = polarion_instance.search()
+        if adapter.handle_polarion(polarion_results) is False:
+            ret_status = Ret.ERROR_ADAPTER_HANDLER_POLARION
+
+    return ret_status
+
+
+def _save_temp_file(output: dict) -> Ret:
+    """
+    Save the output dictionary to a temporary file.
+
+    Args:
+        output (dict): The output dictionary.
+
+    Returns:
+        Ret: The return status.
+    """
+    ret_status = Ret.OK
+
+    try:
+        # Write to the file.
+        with open(_TEMP_FILE_PATH, "w", encoding="UTF-8") as file:
+            json.dump(output, file, indent=2)
+    except Exception as e:  # pylint: disable=broad-except
+        LOG.error("An error occurred writing the temporary file: %s", e)
+        ret_status = Ret.ERROR
+
+    return ret_status
+
+
+def _process_superset(adapter: AdapterInterface) -> Ret:
+    """
+    Process the Superset file upload.
+
+    Returns:
+        Ret: The return status.
+    """
+    ret_status = Ret.OK
+
+    # Send the temporary file to the metric server using Superset.
+    superset_instance = Superset(adapter.superset_config)
+    ret = superset_instance.upload(_TEMP_FILE_PATH)
+
+    if 0 != ret:
+        ret_status = Ret.ERROR_SUPERSET_UPLOAD
+        LOG.error("Error while uploading to Superset!")
+    else:
+        LOG.info("Successfully uploaded to Superset!")
+
+    return ret_status
+
+
 def main() -> Ret:
     """ The program entry point function.
 
@@ -212,71 +309,36 @@ def main() -> Ret:
         if ret_status == Ret.OK:
             # Import the adapter module.
             adapter = _import_adapter(args.adapter_file)
+
             if adapter is None:
                 LOG.error("The adapter module could not be imported.")
                 ret_status = Ret.ERROR
 
         if ret_status == Ret.OK:
-            if adapter.jira_config.get("filter", "") != "":
-                # Overwrite the output directory with the temp directory.
-                adapter.jira_config["file"] = os.path.join(
-                    _TEMP_DIR_NAME, "jira_search_results.json")
-
-                LOG.info("Searching in Jira: %s",
-                         adapter.jira_config["filter"])
-
-                jira_instance = Jira(adapter.jira_config)
-                jira_results = jira_instance.search()
-
-                if adapter.handle_jira(jira_results) is False:
-                    ret_status = Ret.ERROR_ADAPTER_HANDLER_JIRA
+            ret_status = _process_jira(adapter=adapter)
 
         if ret_status == Ret.OK:
-            if adapter.polarion_config.get("query", "") != "":
-                # Overwrite the output directory with the temp directory.
-                adapter.polarion_config["output"] = _TEMP_DIR_NAME
-
-                LOG.info("Searching in Polarion: %s",
-                         adapter.polarion_config["query"])
-
-                polarion_instance = Polarion(adapter.polarion_config)
-                polarion_results = polarion_instance.search()
-                if adapter.handle_polarion(polarion_results) is False:
-                    ret_status = Ret.ERROR_ADAPTER_HANDLER_POLARION
+            ret_status = _process_polarion(adapter=adapter)
 
         if ret_status == Ret.OK:
             # Save the output dictionary to a temporary file.
             LOG.info("Saving output to a temporary file...")
 
-            final_output = adapter.output
-            # Ensure the output always contains a date.
-            final_output["date"] = datetime.datetime.now().isoformat()
+            # Get the output from the adapter.
+            processed_output = adapter.output
 
-            try:
-                temp_file_path = os.path.join(_TEMP_DIR_NAME, _TEMP_FILE_NAME)
-                # Write to the file.
-                with open(temp_file_path, "w", encoding="UTF-8") as file:
-                    json.dump(final_output, file, indent=2)
-            except Exception as e:  # pylint: disable=broad-except
-                LOG.error("An error occurred writing the temporary file: %s", e)
-                ret_status = Ret.ERROR
+            # Ensure the output always contains a date.
+            processed_output["date"] = datetime.datetime.now().isoformat()
+
+            # Save the output to a temporary file.
+            ret_status = _save_temp_file(output=processed_output)
 
         if Ret.OK == ret_status:
-            # Send the temporary file to the metric server using Superset.
-            LOG.info("Sending the temporary file to the metric server...")
-
-            LOG.info("Uploading file %s", temp_file_path)
-
-            superset_instance = Superset(adapter.superset_config)
-            ret = superset_instance.upload(temp_file_path)
-
-            if 0 != ret:
-                ret_status = Ret.ERROR_SUPERSET_UPLOAD
-                LOG.error("Error while uploading to Superset!")
+            ret_status = _process_superset(adapter=adapter)
 
         # Clean up the temporary directory.
-        if not os.path.exists(_TEMP_DIR_NAME):
-            os.rmdir(_TEMP_DIR_NAME)
+        if os.path.exists(_TEMP_DIR_NAME):
+            shutil.rmtree(_TEMP_DIR_NAME, ignore_errors=True)
 
     return ret_status
 
