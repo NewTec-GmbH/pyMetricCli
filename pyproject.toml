@@ -23,9 +23,9 @@ classifiers = [
 
 dependencies = [
     "toml>=0.10.2",
-    "pyJiraCli @ git+https://github.com/NewTec-GmbH/pyJiraCli,
-    "pyPolarionCli @ git+https://github.com/NewTec-GmbH/pyPolarionCli",
-    "pySupersetCli @ git+https://github.com/NewTec-GmbH/pySupersetCli"
+    "pyJiraCli@git+https://github.com/NewTec-GmbH/pyJiraCli",
+    "pyPolarionCli@git+https://github.com/NewTec-GmbH/pyPolarionCli",
+    "pySupersetCli@git+https://github.com/NewTec-GmbH/pySupersetCli"
 ]
 
 [project.optional-dependencies]
