@@ -1,4 +1,5 @@
-"""This module contains general constants, used in all other modules."""
+
+"""Project-Specific Adapter Module"""
 
 # BSD 3-Clause License
 #
@@ -33,30 +34,91 @@
 # Imports
 ################################################################################
 
-from enum import IntEnum
+import logging
+from pyMetricCli.adapter_interface import AdapterInterface
 
 ################################################################################
 # Variables
 ################################################################################
+
+LOG = logging.getLogger(__name__)
 
 ################################################################################
 # Classes
 ################################################################################
 
 
-class Ret(IntEnum):
-    """This type shall be used for return status information.
+class Adapter(AdapterInterface):
     """
-    OK = 0
-    ERROR = 1
-    ERROR_ARGPARSE = 2  # Must be 2 to match the argparse error code.
-    ERROR_INVALID_ARGUMENT = 3
-    ERROR_ADAPTER_HANDLER_JIRA = 4
-    ERROR_ADAPTER_HANDLER_POLARION = 5
-    ERROR_SUPERSET_UPLOAD = 6
-    ERROR_NOT_INSTALLED_JIRA = 7
-    ERROR_NOT_INSTALLED_POLARION = 8
-    ERROR_NOT_INSTALLED_SUPERSET = 9
+    Adapter class for handling different search results.
+    """
+
+    # Define the output dictionary
+    # Must include all possible values.
+    # Please make sure that the keys of the output dictionary are unique, regardless of their case.
+    # In this example, Polarion Status has 2 possible values: "open" and "closed".
+    output: dict = {
+        "status_open": 0,
+        "status_closed": 0
+    }
+
+    # Set "filter": "", if you don't want to search in Jira.
+    jira_config = {
+        "server": "https://jira.example.com",
+        "token": "",
+        "filter": "",
+        "max": "0",  # 0 gets all issues that match the filter.
+        "fields": [],
+        "full": False
+    }
+
+    # Set "query": "", if you don't want to search in Polarion.
+    polarion_config = {
+        "username": "",
+        "password": "",
+        "server": "http://polarion.example.com/polarion",
+        "project": "",
+        "query": "HAS_VALUE:status",  # Query to get all work items with a status
+        "fields": ["status"]  # Fields to include in the query
+    }
+
+    superset_config = {
+        "server": "http://superset.example.com",
+        "user": "",
+        "password": "",
+        "database": 0,  # Primary key of the database
+        "table": "",
+        "basic_auth": False,
+        "no_ssl": False
+    }
+
+    def handle_jira(self, search_results: dict) -> bool:
+        """
+        Handles the JIRA search results.
+
+        Args:
+            search_results: The search results from the JIRA API.
+
+        Returns:
+            bool: True if the search results were handled successfully, False otherwise.
+        """
+        LOG.info("Handling JIRA search results...")
+        LOG.info(search_results)
+        return True
+
+    def handle_polarion(self, search_results: dict) -> bool:
+        """
+        Handles the Polarion search results.
+
+        Args:
+            search_results: The search results from the Polarion API.
+
+        Returns:
+            bool: True if the search results were handled successfully, False otherwise.
+        """
+        LOG.info("Handling Polarion search results...")
+        LOG.info(search_results)
+        return True
 
 ################################################################################
 # Functions
