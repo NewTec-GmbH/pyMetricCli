@@ -1,0 +1,78 @@
+@startuml DeploymentDiagram
+
+node "Apache Superset"<<virtual-machine>> as superset
+
+database "DB Server" {
+    component "Database" as supersetDb
+
+    note bottom of supersetDb
+        The database is project specific, means
+        one database per project.
+    end note
+
+    component "Database" as jiraDb
+}
+
+node "Polarion"<<virtual-machine>> as polarion
+database "SVN Repository" as svnRepo
+
+node "JIRA"<<virtual-machine>> as jira
+
+interface "REST API" as supersetRestApi
+interface "REST API" as jiraRestApi
+interface "SOAP API" as polarionSoapApi
+
+superset --- supersetRestApi
+jira --- jiraRestApi
+jira -- jiraDb
+polarion --- polarionSoapApi
+polarion -- svnRepo
+
+superset -- supersetDb
+
+node "Continuous Integration Server"<<virtual-machine>> {
+
+    package "scripts" {
+        component "pyJiraCli" as pyJiraCli
+        component "pyPolarionCli" as pyPolarionCli
+        component "pySupersetCli" as pySupersetCli
+        component "pyMetricCli" as pyMetricCli
+        component "pyMetricCli_Adapter" as adapter
+
+        pyJiraCli <.. pyMetricCli: <<uses>>
+        pyPolarionCli <.. pyMetricCli: <<uses>>
+        pySupersetCli <.. pyMetricCli: <<uses>>
+        pyMetricCli *--> adapter
+
+        note right of pyMetricCli
+            Called by CI cyclic to generate
+            metrics.
+        end note
+
+        note right of adapter
+            Is project specific.
+            Called by CI cyclic to generate
+            metrics.
+        end note
+    }
+}
+
+jiraRestApi )-- pyJiraCli: <<uses>>
+polarionSoapApi )-- pyPolarionCli: <<uses>>
+
+supersetRestApi )-- pySupersetCli: <<writes>>
+
+note top of superset
+    Report frontend for project metrics.
+end note
+
+note top of jira
+    Issue tracking system.
+end note
+
+note top of polarion
+    Requirements management.
+end note
+
+
+@enduml

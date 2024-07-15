@@ -29,6 +29,10 @@ pyMetricCli requires an adapter file to be supplied by the user. This shall cont
 
 An example adapter can be found [here](examples/adapter/adapter.py).
 
+### Deployment
+
+![deployment](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/NewTec-GmbH/pyMetricCli/main/doc/uml/deployment.puml)
+
 ## Usage
 
 Show help information:
