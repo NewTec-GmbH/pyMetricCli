@@ -2,7 +2,7 @@
 
 pyMetricCli is a collection of scripts and API implementations for generating and playing with metrics.
 
-[![License](https://img.shields.io/badge/license-bsd-3.svg)](https://choosealicense.com/licenses/bsd-3-clause/) [![Repo Status](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip) [![CI](https://github.com/NewTec-GmbH/pyMetricCli/actions/workflows/ci.yml/badge.svg)](https://github.com/NewTec-GmbH/pyMetricCli/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-bsd-3.svg)](https://choosealicense.com/licenses/bsd-3-clause/) [![Repo Status](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active) [![CI](https://github.com/NewTec-GmbH/pyMetricCli/actions/workflows/ci.yml/badge.svg)](https://github.com/NewTec-GmbH/pyMetricCli/actions/workflows/test.yml)
 
 - [Installation](#installation)
 - [Overview](#overview)
