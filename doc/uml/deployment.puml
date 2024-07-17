@@ -62,8 +62,6 @@ polarionSoapApi )-- pyPolarionCli
 
 supersetRestApi )-- pySupersetCli
 
-conaktivSoapApi )-- pyConaktivCli
-
 note top of superset
     Report frontend for project metrics.
 end note
