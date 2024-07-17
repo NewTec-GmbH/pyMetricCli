@@ -57,10 +57,12 @@ node "Continuous Integration Server"<<virtual-machine>> {
     }
 }
 
-jiraRestApi )-- pyJiraCli: <<uses>>
-polarionSoapApi )-- pyPolarionCli: <<uses>>
+jiraRestApi )-- pyJiraCli
+polarionSoapApi )-- pyPolarionCli
 
-supersetRestApi )-- pySupersetCli: <<writes>>
+supersetRestApi )-- pySupersetCli
+
+conaktivSoapApi )-- pyConaktivCli
 
 note top of superset
     Report frontend for project metrics.
