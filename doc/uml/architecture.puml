@@ -1,0 +1,37 @@
+@startuml ArchitectureDiagram
+
+package "pyMetricCli" as pyMetricCli {
+    component "Main Entry Point" as main
+    component "jira" as jira
+    component "polarion" as polarion
+    component "superset" as superset
+    component "AdapterInterface" as adapterInterface
+}
+
+package "NewTec Python Tools" as pyTools {
+    component "pyJiraCli" as pyJira
+    component "pyPolarionCli" as pyPolarion
+    component "pySupersetCli" as pySuperset
+}
+
+package "Python" as python {
+    component "Argparse" as argparse
+}
+
+package "Project-specific" as user {
+    component "Adapter" as adapter
+}
+
+main *--> argparse
+main *--> jira
+main *--> polarion
+main *--> superset
+main *--> adapterInterface
+
+jira ..> pyJira : <<call via CLI>>
+polarion ..> pyPolarion : <<call via CLI>>
+superset ..> pySuperset : <<call via CLI>>
+
+adapterInterface <|.. adapter : <<realize>>
+
+@enduml
