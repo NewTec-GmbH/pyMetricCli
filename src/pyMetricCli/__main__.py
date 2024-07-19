@@ -135,27 +135,8 @@ def _import_adapter(adapter_path: str) -> AdapterInterface:
         adapter_instance = adapter.Adapter()
 
     # Check all required attributes and methods of the adapter class.
-    # Must be done as Python does not enforce interfaces.
     if not isinstance(adapter_instance, AdapterInterface):
         LOG.error("The adapter class must inherit from AdapterInterface.")
-        adapter_instance = None
-    elif not hasattr(adapter_instance, "output"):
-        LOG.error("The adapter class must have an 'output' attribute.")
-        adapter_instance = None
-    elif not hasattr(adapter_instance, "jira_config"):
-        LOG.error("The adapter class must have a 'jira_config' attribute.")
-        adapter_instance = None
-    elif not hasattr(adapter_instance, "polarion_config"):
-        LOG.error("The adapter class must have a 'polarion_config' attribute.")
-        adapter_instance = None
-    elif not hasattr(adapter_instance, "superset_config"):
-        LOG.error("The adapter class must have a 'superset_config' attribute.")
-        adapter_instance = None
-    elif not hasattr(adapter_instance, "handle_jira"):
-        LOG.error("The adapter class must have a 'handle_jira' method.")
-        adapter_instance = None
-    elif not hasattr(adapter_instance, "handle_polarion"):
-        LOG.error("The adapter class must have a 'handle_polarion' method.")
         adapter_instance = None
     else:
         LOG.info("Adapter class successfully imported.")
