@@ -33,6 +33,8 @@
 # Imports
 ################################################################################
 
+from abc import ABC, abstractmethod
+
 ################################################################################
 # Variables
 ################################################################################
@@ -42,16 +44,51 @@
 ################################################################################
 
 
-class AdapterInterface():
+class AdapterInterface(ABC):
     """
     Adapter interface class for handling different search results.
     """
 
-    output: dict
-    jira_config: dict
-    polarion_config: dict
-    superset_config: dict
+    @property
+    @abstractmethod
+    def output(self) -> dict:
+        """
+        Output dictionary.
+        """
 
+    @property
+    @abstractmethod
+    def jira_config(self) -> dict:
+        """
+        JIRA configuration.
+        """
+    @property
+    @abstractmethod
+    def polarion_config(self) -> dict:
+        """
+        Polarion configuration.
+        """
+    @property
+    @abstractmethod
+    def superset_config(self) -> dict:
+        """
+        Superset configuration.
+        """
+
+    def __init__(self) -> None:
+        """
+        Initializes the adapter.
+        Must be called after the definition of the properties.
+        """
+        assert isinstance(self.output, dict), "output must be a dictionary"
+        assert isinstance(self.jira_config,
+                          dict), "jira_config must be a dictionary"
+        assert isinstance(self.polarion_config,
+                          dict), "polarion_config config must be a dictionary"
+        assert isinstance(self.superset_config,
+                          dict), "superset_config config must be a dictionary"
+
+    @abstractmethod
     def handle_jira(self, _search_results: dict) -> bool:
         """
         Handles the JIRA search results.
@@ -62,8 +99,8 @@ class AdapterInterface():
         Returns:
             bool: True if the search results were handled successfully, False otherwise.
         """
-        return False
 
+    @abstractmethod
     def handle_polarion(self, _search_results: dict) -> bool:
         """
         Handles the Polarion search results.
@@ -74,7 +111,6 @@ class AdapterInterface():
         Returns:
             bool: True if the search results were handled successfully, False otherwise.
         """
-        return False
 
 ################################################################################
 # Functions
