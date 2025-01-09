@@ -68,7 +68,7 @@ class Polarion:  # pylint: disable=too-few-public-methods
             arguments (list): List of arguments to pass to pyPolarionCli.
 
         Returns:
-            subprocess.CompletedProcess[bytes]: The result of the command. 
+            subprocess.CompletedProcess[bytes]: The result of the command.
             Includes return code, stdout and stderr.
         """
         args = ["pyPolarionCli"]  # The executable to run.
@@ -109,12 +109,17 @@ class Polarion:  # pylint: disable=too-few-public-methods
                                         f"{self.config['project']}_search_results.json")
 
         command_list: list = ["--user", self.config["username"],
-                              "--password", self.config["password"],
-                              "--server", self.config["server"],
-                              "search",
-                              "--project", self.config["project"],
-                              "--output", self.config["output"],
-                              "--query", self.config["query"]]
+                              "--password", self.config["password"]]
+
+        # Add token if available. pyPolarionCli will use it instead of the password if provided.
+        if "token" in self.config and self.config["token"]:
+            command_list += ["--token", self.config["token"]]
+
+        command_list += ["--server", self.config["server"],
+                        "search",
+                        "--project", self.config["project"],
+                        "--output", self.config["output"],
+                        "--query", self.config["query"]]
 
         for field in self.config["fields"]:
             command_list.append("--field")
