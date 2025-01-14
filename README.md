@@ -49,7 +49,7 @@ pyMetricCli [-h] -a <adapter_file> [--version] [-v]
 | Flag           | Description                                                                                     |
 | :-----------:  | ----------------------------------------------------------------------------------------------- |
 | --verbose , -v | Print full command details before executing the command. Enables logs of type INFO and WARNING. |
-| --version      | Import a ticket from a JSON file.                                                               |
+| --version      | Show version information.                                                                       |
 | --help , -h    | Show the help message and exit.                                                                 |
 
 Example:
