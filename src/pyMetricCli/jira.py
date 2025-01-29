@@ -67,16 +67,13 @@ class Jira:  # pylint: disable=too-few-public-methods
             arguments (list): List of arguments to pass to pyJiraCli.
 
         Returns:
-            subprocess.CompletedProcess[bytes]: The result of the command. 
+            subprocess.CompletedProcess[bytes]: The result of the command.
             Includes return code, stdout and stderr.
         """
         # pylint: disable=duplicate-code
         args = ["pyJiraCli"]  # The executable to run.
         args.extend(arguments)  # Add the arguments to the command.
-        return subprocess.run(args,
-                              capture_output=True,
-                              check=False,
-                              shell=False)
+        return subprocess.run(args, capture_output=True, check=False, shell=False)
 
     def __check_if_is_installed(self) -> bool:
         """
@@ -102,17 +99,24 @@ class Jira:  # pylint: disable=too-few-public-methods
             dict: Search results.
         """
         output = {}
-        command_list: list = ["--server", self.config["server"],
-                              "--token", self.config["token"],
-                              "search",
-                              self.config["filter"],
-                              "--file", self.config["file"],
-                              "--max", self.config["max"]]
-        ret = self.__run_pyjiracli(command_list)
+        command_list: list = [
+            "search",
+            "--server",
+            self.config["server"],
+            "--token",
+            self.config["token"],
+            self.config["filter"],
+            "--file",
+            self.config["file"],
+            "--max",
+            self.config["max"],
+        ]
 
         for field in self.config["fields"]:
             command_list.append("--field")
             command_list.append(field)
+
+        ret = self.__run_pyjiracli(command_list)
 
         if 0 != ret.returncode:
             print("Error while running pyJiraCli!")
@@ -123,8 +127,7 @@ class Jira:  # pylint: disable=too-few-public-methods
                 with open(self.config["file"], "r", encoding="utf-8") as file:
                     output = json.load(file)
             except Exception as e:  # pylint: disable=broad-except
-                LOG.error(
-                    "An error occurred loading the Jira results from file: %s", e)
+                LOG.error("An error occurred loading the Jira results from file: %s", e)
 
         return output
 
