@@ -21,7 +21,7 @@
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICU5LAR PURPOSE ARE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
 # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
@@ -64,9 +64,10 @@ class Adapter(AdapterInterface):
 
     # Set "filter": "", if you don't want to search in Jira.
     jira_config = {
-        "server": "https://jira.example.com",
+        "profile": "newtec_jira",
+        "server": "",
         "token": "",
-        "filter": "",
+        "filter": "ISSUE=PROJCHANCE-3063",
         "max": "0",  # 0 gets all issues that match the filter.
         "fields": [],
         "full": False
@@ -79,7 +80,7 @@ class Adapter(AdapterInterface):
         "server": "http://polarion.example.com/polarion",
         "token": "",
         "project": "",
-        "query": "HAS_VALUE:status",  # Query to get all work items with a status
+        "query": "",
         "fields": ["status"]  # Fields to include in the query
     }
 

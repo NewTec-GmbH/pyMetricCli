@@ -20,7 +20,7 @@
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICU5LAR PURPOSE ARE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
 # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
@@ -163,13 +163,13 @@ def _process_jira(adapter: AdapterInterface) -> Ret:
     """
     ret_status = Ret.OK
 
+    # Ignore Jira if filter is empty.
     if adapter.jira_config.get("filter", "") != "":
         # Overwrite the output directory with the temp directory.
         adapter.jira_config["file"] = os.path.join(
             _TEMP_DIR_NAME, "jira_search_results.json")
 
-        LOG.info("Searching in Jira: %s",
-                 adapter.jira_config["filter"])
+        LOG.info("Searching in Jira for '%s'...", adapter.jira_config["filter"])
 
         jira_instance = Jira(adapter.jira_config)
         if jira_instance.is_installed is False:
@@ -192,12 +192,12 @@ def _process_polarion(adapter: AdapterInterface) -> Ret:
     """
     ret_status = Ret.OK
 
+    # Ignore Polarion if query is empty.
     if adapter.polarion_config.get("query", "") != "":
         # Overwrite the output directory with the temp directory.
         adapter.polarion_config["output"] = _TEMP_DIR_NAME
 
-        LOG.info("Searching in Polarion: %s",
-                 adapter.polarion_config["query"])
+        LOG.info("Searching in Polarion: %s", adapter.polarion_config["query"])
 
         polarion_instance = Polarion(adapter.polarion_config)
         if polarion_instance.is_installed is False:
