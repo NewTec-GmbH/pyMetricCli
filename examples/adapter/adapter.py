@@ -77,6 +77,7 @@ class Adapter(AdapterInterface):
         "username": "",
         "password": "",
         "server": "http://polarion.example.com/polarion",
+        "token": "",
         "project": "",
         "query": "HAS_VALUE:status",  # Query to get all work items with a status
         "fields": ["status"]  # Fields to include in the query
