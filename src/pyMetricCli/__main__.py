@@ -125,7 +125,7 @@ def _import_adapter(adapter_path: str) -> AdapterInterface:
     adapter_instance = None
 
     if not os.path.isfile(adapter_path):
-        LOG.error("The adapter file does not exist.")
+        LOG.error("The adapter file '%s' does not exist.", adapter_path)
     else:
         module_spec = importlib.util.spec_from_file_location(adapter_name,
                                                              adapter_path)
@@ -134,22 +134,22 @@ def _import_adapter(adapter_path: str) -> AdapterInterface:
         module_spec.loader.exec_module(adapter)
         adapter_instance = adapter.Adapter()
 
-    # Check all required attributes and methods of the adapter class.
-    if not isinstance(adapter_instance, AdapterInterface):
-        LOG.error("The adapter class must inherit from AdapterInterface.")
-        adapter_instance = None
-    else:
-        LOG.info("Adapter class successfully imported.")
-
-        # Check if the values of the output dictionary in the adapter class are unique.
-        output_list = list(adapter_instance.output.keys())
-        output_list_lowercase = [status.lower() for status in output_list]
-
-        number_unique_values = len(set(output_list_lowercase))
-        if number_unique_values != len(output_list):
-            LOG.error(
-                "The keys in the output dictionary in the adapter class must be unique.")
+        # Check all required attributes and methods of the adapter class.
+        if not isinstance(adapter_instance, AdapterInterface):
+            LOG.error("The adapter class must inherit from AdapterInterface.")
             adapter_instance = None
+        else:
+            LOG.info("Adapter class successfully imported.")
+
+            # Check if the values of the output dictionary in the adapter class are unique.
+            output_list = list(adapter_instance.output.keys())
+            output_list_lowercase = [status.lower() for status in output_list]
+
+            number_unique_values = len(set(output_list_lowercase))
+            if number_unique_values != len(output_list):
+                LOG.error(
+                    "The keys in the output dictionary in the adapter class must be unique.")
+                adapter_instance = None
 
     return adapter_instance
 
