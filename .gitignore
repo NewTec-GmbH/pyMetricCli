@@ -170,3 +170,6 @@ cython_debug/
 dev/
 
 temp/
+
+# Custom vscode workspace files at the root
+/*.code-workspace
