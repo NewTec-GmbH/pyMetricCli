@@ -98,19 +98,31 @@ class Jira:  # pylint: disable=too-few-public-methods
         Returns:
             dict: Search results.
         """
+
         output = {}
         command_list: list = [
             "search",
-            "--server",
-            self.config["server"],
-            "--token",
-            self.config["token"],
             self.config["filter"],
             "--file",
             self.config["file"],
             "--max",
             self.config["max"],
         ]
+
+        # Append profile arg if profile is set in the 'jira_config'.
+        if "profile" in self.config:
+            command_list += [
+                "--profile",
+                self.config["profile"]
+            ]
+        # Else take the server and token from the 'jira_config'.
+        else:
+            command_list += [
+                "--server",
+                self.config["server"],
+                "--token",
+                self.config["token"],
+            ]
 
         for field in self.config["fields"]:
             command_list.append("--field")
