@@ -120,6 +120,7 @@ class Polarion:  # pylint: disable=too-few-public-methods
 
         # Read credentials from the profile if a profile name has been given
         # in the 'polarion_config'.
+        # pylint: disable=R0801
         if "profile" in self.config:
             profile_mgr = ProfileMgr()
             ret_code = profile_mgr.load(self.config["profile"])
