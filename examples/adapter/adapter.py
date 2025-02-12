@@ -62,30 +62,35 @@ class Adapter(AdapterInterface):
         "status_closed": 0
     }
 
-    # Set "filter": "", if you don't want to search in Jira.
+    # Set "filter": "" if you don't want to search in Jira.
     jira_config = {
         "profile": "newtec_jira",
         "server": "",
         "token": "",
+        # Filter to get a specific issue.
         "filter": "ISSUE=PROJCHANCE-3063",
         "max": "0",  # 0 gets all issues that match the filter.
         "fields": [],
         "full": False
     }
 
-    # Set "query": "", if you don't want to search in Polarion.
+    # Set "query": "" if you don't want to search in Polarion.
     polarion_config = {
+        "profile": "newtec_polarion",
         "username": "",
         "password": "",
-        "server": "http://polarion.example.com/polarion",
+        "server": "",
         "token": "",
-        "project": "",
-        "query": "",
-        "fields": ["status"]  # Fields to include in the query
+        "project": "BBRAUN.SPACE2",
+        # Query to get all obsolete work items (shouldn't be many).
+        "query": "severity:Obsolete",
+        # Fields to restrict to.
+        "fields": ["id", "title", "status"],
     }
 
     superset_config = {
-        "server": "http://superset.example.com",
+        "profile": "newtec_superset",
+        "server": "",
         "user": "",
         "password": "",
         "database": 0,  # Primary key of the database

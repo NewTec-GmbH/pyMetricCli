@@ -76,7 +76,7 @@ _TEMP_FILE_PATH = os.path.join(_TEMP_DIR_NAME, _TEMP_FILE_NAME)
 
 def add_parser() -> argparse.ArgumentParser:
     """ Add parser for command line arguments and
-        set the execute function of each 
+        set the execute function of each
         cmd module as callback for the subparser command.
         Return the parser after all the modules have been registered
         and added their subparsers.

@@ -40,11 +40,16 @@ import subprocess
 import json
 import logging
 
+from pyProfileMgr.profile_mgr import ProfileMgr, ProfileType
+from pyProfileMgr.ret import Ret
+
+
 ################################################################################
 # Variables
 ################################################################################
 
 LOG: logging.Logger = logging.getLogger(__name__)
+
 
 ################################################################################
 # Classes
@@ -108,18 +113,50 @@ class Polarion:  # pylint: disable=too-few-public-methods
         output_file_name = os.path.join(self.config['output'],
                                         f"{self.config['project']}_search_results.json")
 
-        command_list: list = ["--user", self.config["username"],
-                              "--password", self.config["password"]]
+        server: str
+        username: str
+        password: str
+        token: str
+
+        # Read credentials from the profile if a profile name has been given
+        # in the 'polarion_config'.
+        if "profile" in self.config:
+            profile_mgr = ProfileMgr()
+            ret_code = profile_mgr.load(self.config["profile"])
+            if ret_code != Ret.CODE.RET_OK:
+                print("Error loading profile:", self.config['profile'])
+                return output
+
+            # Check for profile type 'polarion'.
+            if profile_mgr.get_type() != ProfileType.POLARION:
+                print("The profile type is not 'polarion'.")
+                return output
+
+            server = profile_mgr.get_server_url()
+            username = profile_mgr.get_user()
+            password = profile_mgr.get_password()
+            token = profile_mgr.get_api_token()
+        # Else take credentials from the 'polarion_config'.
+        else:
+            server = self.config["server"]
+            username = self.config["username"]
+            password = self.config["password"]
+            token = self.config["token"]
+
+        command_list: list = []
 
         # Add token if available. pyPolarionCli will use it instead of the password if provided.
-        if "token" in self.config and self.config["token"]:
-            command_list += ["--token", self.config["token"]]
+        if token:
+            command_list += ["--token", token]
+        else:
+            command_list += ["--user", username,
+                             "--password", password]
 
-        command_list += ["--server", self.config["server"],
-                        "search",
-                        "--project", self.config["project"],
-                        "--output", self.config["output"],
-                        "--query", self.config["query"]]
+        command_list += ["--server", server,
+                         "search",
+                         "--project", self.config["project"],
+                         "--output", self.config["output"],
+                         "--query", self.config["query"]]
 
         for field in self.config["fields"]:
             command_list.append("--field")

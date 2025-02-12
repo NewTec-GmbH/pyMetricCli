@@ -38,11 +38,16 @@ Wrapper for the pySupersetCli Tool.
 import subprocess
 import logging
 
+from pyProfileMgr.profile_mgr import ProfileMgr, ProfileType
+from pyProfileMgr.ret import Ret
+
+
 ################################################################################
 # Variables
 ################################################################################
 
 LOG: logging.Logger = logging.getLogger(__name__)
+
 
 ################################################################################
 # Classes
@@ -66,7 +71,7 @@ class Superset:  # pylint: disable=too-few-public-methods
             arguments (list): List of arguments to pass to pySupersetCli.
 
         Returns:
-            subprocess.CompletedProcess[bytes]: The result of the command. 
+            subprocess.CompletedProcess[bytes]: The result of the command.
             Includes return code, stdout and stderr.
         """
         # pylint: disable=duplicate-code
@@ -103,10 +108,38 @@ class Superset:  # pylint: disable=too-few-public-methods
         Returns:
             int: Return Code of the command.
         """
+
+        server: str
+        username: str
+        password: str
+
+        # Read credentials from the profile if a profile name has been given
+        # in the 'superset_config'.
+        if "profile" in self.config:
+            profile_mgr = ProfileMgr()
+            ret_code = profile_mgr.load(self.config["profile"])
+            if ret_code != Ret.CODE.RET_OK:
+                print("Error loading profile:", self.config['profile'])
+                return -1
+
+            # Check for profile type 'superset'.
+            if profile_mgr.get_type() != ProfileType.SUPERSET:
+                print("The profile type is not 'superset'.")
+                return -1
+
+            server = profile_mgr.get_server_url()
+            username = profile_mgr.get_user()
+            password = profile_mgr.get_password()
+        # Else take credentials from the 'superset_config'.
+        else:
+            server = self.config["server"]
+            username = self.config["username"]
+            password = self.config["password"]
+
         command_list: list = ["--verbose",
-                              "--server", self.config["server"],
-                              "--user", self.config["user"],
-                              "--password", self.config["password"]]
+                              "--server", server,
+                              "--user", username,
+                              "--password", password]
 
         if self.config.get("basic_auth") is True:
             command_list.append("--basic_auth")

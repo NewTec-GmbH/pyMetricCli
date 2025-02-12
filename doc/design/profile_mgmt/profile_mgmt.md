@@ -23,13 +23,14 @@ See [example adapter](https://github.com/NewTec-GmbH/pyMetricCli/blob/30be6a2e87
 
 * Create pyProfileMgr component:
   * Move profile handling (create/delete/update/list) to pyProfileMgr, which shall be used by pyJiraCli (through existing cmd_profile) and pyMetricCli (read access to profile using ProfileMgr).
-  * Add cmd_profile (similar to current pyJiraCli profile capability), to create profiles with a type (Jira, Polarion or Superset) and corresponding data attributes.
-* Introduce "profile" notion in pyMetricCli:
-  * Reference profiles through their name (check type) in the adapter config, having precedence before other config.
+  * Add cmd_profile to pyProfileMgr (similar to current pyJiraCli cmd_profile), to allow create/delete/update/list
+  of profiles with a type (currently Jira, Polarion or Superset) and corresponding uniform data attributes.
+* Introduce "profile" notion in pyMetricCli and the adapter config:
+  * Reference profiles with their name (check type) in the adapter config, having precedence before other config.
   * Decide what to do with server/token (jira_config), username/password/server/token (polarion_config) and username/password/server (superset_config) in the adapter file:
     * Alternative 1: Remove it (breaking change), i.e. make profiles on pyMetricCli level mandatory.
     * Alternative 2: Keep current jira_config/polarion_config/superset_config settings in the adapter file and allow for profile references in addition (which should have precedence).
-* Allow persistence of user/password in the profile data file. There is no strict need to encrypt them as the file is locally stored in the user profile folder.
+* Allow persistence of user/password in the profile data file (mandatory for Superset). There is no strict need to encrypt them as the file is stored locally in the user profile folder.
 
 ## Open points
 
