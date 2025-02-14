@@ -29,7 +29,7 @@ dependencies = [
     "pyJiraCli@git+https://github.com/NewTec-GmbH/pyJiraCli",
     "pyPolarionCli@git+https://github.com/NewTec-GmbH/pyPolarionCli",
     "pySupersetCli@git+https://github.com/NewTec-GmbH/pySupersetCli",
-    "pyProfileMgr@git+https://github.com/NewTec-GmbH/pyProfileMgr.git@main"
+    "pyProfileMgr@git+https://github.com/NewTec-GmbH/pyProfileMgr.git"
 ]
 
 [project.optional-dependencies]
