@@ -10,7 +10,8 @@ readme = "README.md"
 requires-python = ">=3.9"
 authors = [
     { name = "Gabryel Reyes", email = "gabryel.reyes@newtec.de" },
-    { name = "Juliane Kerpe", email = "juliane.kerpe@newtec.de" }
+    { name = "Juliane Kerpe", email = "juliane.kerpe@newtec.de" },
+    { name = "Stefan Vogel", email = "stefan.vogel@newtec.de" }
 ]
 license = {text = "BSD 3-Clause"}
 classifiers = [
@@ -27,7 +28,8 @@ dependencies = [
     "toml>=0.10.2",
     "pyJiraCli@git+https://github.com/NewTec-GmbH/pyJiraCli",
     "pyPolarionCli@git+https://github.com/NewTec-GmbH/pyPolarionCli",
-    "pySupersetCli@git+https://github.com/NewTec-GmbH/pySupersetCli"
+    "pySupersetCli@git+https://github.com/NewTec-GmbH/pySupersetCli",
+    "pyProfileMgr@git+https://github.com/NewTec-GmbH/pyProfileMgr.git@feature/profile_mgmt_lib"
 ]
 
 [project.optional-dependencies]

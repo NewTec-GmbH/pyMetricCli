@@ -32,17 +32,20 @@ superset -- supersetDb
 
 node "Continuous Integration Server"<<virtual-machine>> {
 
-    package "scripts" {
-        component "pyJiraCli" as pyJiraCli
-        component "pyPolarionCli" as pyPolarionCli
-        component "pySupersetCli" as pySupersetCli
-        component "pyMetricCli" as pyMetricCli
+    package "Scripts" {
+        component "pyJiraCli"
+        component "pyPolarionCli"
+        component "pySupersetCli"
+        component "pyMetricCli"
         component "pyMetricCli_Adapter" as adapter
+        component "pyProfileMgr"
 
         pyJiraCli <.. pyMetricCli: <<uses>>
+        pyJiraCli *--> pyProfileMgr
         pyPolarionCli <.. pyMetricCli: <<uses>>
         pySupersetCli <.. pyMetricCli: <<uses>>
         pyMetricCli *--> adapter
+        pyMetricCli *--> pyProfileMgr
 
         note right of pyMetricCli
             Called by CI cyclic to generate
@@ -55,6 +58,12 @@ node "Continuous Integration Server"<<virtual-machine>> {
             metrics.
         end note
     }
+
+    folder Filesystem {
+        file "Profile data" as profile_data_files
+    }
+
+    pyProfileMgr -- profile_data_files
 }
 
 jiraRestApi )-- pyJiraCli
