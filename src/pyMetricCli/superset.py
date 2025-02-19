@@ -38,7 +38,8 @@ Wrapper for the pySupersetCli Tool.
 import subprocess
 import logging
 
-from pyProfileMgr.profile_mgr import ProfileMgr, ProfileType
+from pyProfileMgr.profile_data import ProfileType
+from pyProfileMgr.profile_mgr import ProfileMgr
 from pyProfileMgr.ret import Ret
 
 
@@ -61,9 +62,9 @@ class Superset:  # pylint: disable=too-few-public-methods
 
     def __init__(self, superset_config: dict) -> None:
         self.config = superset_config
-        self.is_installed = self.__check_if_is_installed()
+        self.is_installed = self._check_if_is_installed()
 
-    def __run_pysupersetcli(self, arguments) -> subprocess.CompletedProcess:
+    def _run_pysupersetcli(self, arguments) -> subprocess.CompletedProcess:
         """
         Wrapper to run pySupersetCli command line.
 
@@ -82,7 +83,7 @@ class Superset:  # pylint: disable=too-few-public-methods
                               check=False,
                               shell=False)
 
-    def __check_if_is_installed(self) -> bool:
+    def _check_if_is_installed(self) -> bool:
         """
         Checks if the pySupersetCli Tool is installed.
 
@@ -91,7 +92,7 @@ class Superset:  # pylint: disable=too-few-public-methods
         """
         is_installed = True
         try:
-            ret = self.__run_pysupersetcli(["--help"])
+            ret = self._run_pysupersetcli(["--help"])
             ret.check_returncode()
         except subprocess.CalledProcessError:
             print("pySupersetCli is not installed!")
@@ -124,13 +125,13 @@ class Superset:  # pylint: disable=too-few-public-methods
                 return -1
 
             # Check for profile type 'superset'.
-            if profile_mgr.get_type() != ProfileType.SUPERSET:
+            if profile_mgr.loaded_profile.type != ProfileType.SUPERSET:
                 print("The profile type is not 'superset'.")
                 return -1
 
-            server = profile_mgr.get_server_url()
-            username = profile_mgr.get_user()
-            password = profile_mgr.get_password()
+            server = profile_mgr.loaded_profile.server_url
+            username = profile_mgr.loaded_profile.user
+            password = profile_mgr.loaded_profile.password
         # Else take credentials from the 'superset_config'.
         else:
             server = self.config["server"]
@@ -155,7 +156,7 @@ class Superset:  # pylint: disable=too-few-public-methods
                              "--table", self.config["table"],
                              "--file", input_file
                              ])
-        ret = self.__run_pysupersetcli(command_list)
+        ret = self._run_pysupersetcli(command_list)
 
         if 0 != ret.returncode:
             LOG.error("Error while uploading: %s", ret.stderr)

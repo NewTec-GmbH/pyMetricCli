@@ -40,7 +40,8 @@ import subprocess
 import json
 import logging
 
-from pyProfileMgr.profile_mgr import ProfileMgr, ProfileType
+from pyProfileMgr.profile_data import ProfileType
+from pyProfileMgr.profile_mgr import ProfileMgr
 from pyProfileMgr.ret import Ret
 
 
@@ -63,9 +64,9 @@ class Polarion:  # pylint: disable=too-few-public-methods
 
     def __init__(self, polarion_config: dict) -> None:
         self.config = polarion_config
-        self.is_installed = self.__check_if_is_installed()
+        self.is_installed = self._check_if_is_installed()
 
-    def __run_pypolarioncli(self, arguments) -> subprocess.CompletedProcess:
+    def _run_pypolarioncli(self, arguments) -> subprocess.CompletedProcess:
         """
         Wrapper to run pyPolarionCli command line.
 
@@ -84,7 +85,7 @@ class Polarion:  # pylint: disable=too-few-public-methods
                               check=False,
                               shell=False)
 
-    def __check_if_is_installed(self) -> bool:
+    def _check_if_is_installed(self) -> bool:
         """
         Checks if the pyPolarionCli Tool is installed.
 
@@ -94,7 +95,7 @@ class Polarion:  # pylint: disable=too-few-public-methods
         # pylint: disable=duplicate-code
         is_installed = True
         try:
-            ret = self.__run_pypolarioncli(["--help"])
+            ret = self._run_pypolarioncli(["--help"])
             ret.check_returncode()
         except subprocess.CalledProcessError:
             print("pyPolarionCli is not installed!")
@@ -129,14 +130,14 @@ class Polarion:  # pylint: disable=too-few-public-methods
                 return output
 
             # Check for profile type 'polarion'.
-            if profile_mgr.get_type() != ProfileType.POLARION:
+            if profile_mgr.loaded_profile.profile_type != ProfileType.POLARION:
                 print("The profile type is not 'polarion'.")
                 return output
 
-            server = profile_mgr.get_server_url()
-            username = profile_mgr.get_user()
-            password = profile_mgr.get_password()
-            token = profile_mgr.get_api_token()
+            server = profile_mgr.loaded_profile.server_url
+            username = profile_mgr.loaded_profile.user
+            password = profile_mgr.loaded_profile.password
+            token = profile_mgr.loaded_profile.token
         # Else take credentials from the 'polarion_config'.
         else:
             server = self.config["server"]
@@ -163,7 +164,7 @@ class Polarion:  # pylint: disable=too-few-public-methods
             command_list.append("--field")
             command_list.append(field)
 
-        ret = self.__run_pypolarioncli(command_list)
+        ret = self._run_pypolarioncli(command_list)
 
         if 0 != ret.returncode:
             print("Error while running pyPolarionCli!")
