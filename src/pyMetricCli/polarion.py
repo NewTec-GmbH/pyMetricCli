@@ -148,12 +148,11 @@ class Polarion:  # pylint: disable=too-few-public-methods
         command_list: list = []
 
         # Add token if available. pyPolarionCli will use it instead of the password if provided.
+        command_list += ["--user", username]
         if token:
-            command_list += ["--user", username,
-                             "--token", token]
+            command_list += ["--token", token]
         else:
-            command_list += ["--user", username,
-                             "--password", password]
+            command_list += ["--password", password]
 
         command_list += ["--server", server,
                          "search",
